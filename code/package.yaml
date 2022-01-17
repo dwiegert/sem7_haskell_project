@@ -1,0 +1,40 @@
+name:         huffman
+version:      0.1
+synopsis:     huffman
+license:      BSD3
+
+library:
+  exposed-modules: Huffman
+  source-dirs: src
+  dependencies:
+    - base
+    - containers
+    - bytestring
+    - binary
+
+executables:
+  huffman-exe:
+    main: Main.hs
+    source-dirs: exe
+    dependencies:
+      - base
+      - huffman
+
+tests:
+  unit-tests:
+    main: Tests.hs
+    source-dirs: test
+    dependencies:
+      - base
+      - containers
+      - HUnit
+      - huffman
+
+ghc-options:
+  - -Werror -W -fwarn-unused-imports -fwarn-unused-binds -fwarn-orphans
+  - -fwarn-unused-matches -fwarn-unused-do-bind -fwarn-wrong-do-bind
+  - -fwarn-missing-signatures -fno-warn-partial-type-signatures
+  - -Wredundant-constraints -rtsopts
+
+default-extensions:
+  - ScopedTypeVariables
