@@ -38,6 +38,7 @@ executable huffman-exe
   ghc-options: -Werror -W -fwarn-unused-imports -fwarn-unused-binds -fwarn-orphans -fwarn-unused-matches -fwarn-unused-do-bind -fwarn-wrong-do-bind -fwarn-missing-signatures -fno-warn-partial-type-signatures -Wredundant-constraints -rtsopts
   build-depends:
       base
+    , directory
     , huffman
   default-language: Haskell2010
 

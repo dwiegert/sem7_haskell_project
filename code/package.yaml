@@ -19,6 +19,7 @@ executables:
     dependencies:
       - base
       - huffman
+      - directory
 
 tests:
   unit-tests:
