@@ -2,10 +2,10 @@ module Huffman where
 
 import qualified Data.Map.Strict as Map
 import qualified Data.List as List
--- import qualified Data.ByteString as BS
--- import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString as BS
+--import qualified Data.ByteString.Lazy as BSL
 import Data.Word
--- import qualified Data.Binary as B
+--import qualified Data.Binary as B
 
 type Map = Map.Map
 type CodingTable = Map Char [Bit]
@@ -112,56 +112,75 @@ eraseFrequency (Node zero one _) = node (eraseFrequency zero) (eraseFrequency on
 
 -- #9 
 encodeFile :: FilePath -> FilePath -> IO ()
-encodeFile srcFile dstFile = do
-    print "encodeFile"
-    print srcFile
-    print dstFile
+encodeFile = readTransformWrite "compress" compressHuffman
 
 decodeFile :: FilePath -> FilePath -> IO ()
-decodeFile srcFile dstFile = do
-    print "decodeFile"
-    print srcFile
-    print dstFile
+decodeFile = readTransformWrite "decompress" decompressHuffman
 
-bitToBool :: Bit -> Bool
-bitToBool bit = if bit == Zero then False else True
+readTransformWrite :: String -> (String -> String) -> FilePath -> FilePath -> IO ()
+readTransformWrite name transform source destination = do 
+    putStrLn (name ++ ": " ++ show source ++ " -> " ++ show destination)
+    input <- readFile source
+    let output = transform input
+    writeFile destination output
 
-boolToBit :: Bool -> Bit
-boolToBit bool = if bool == False then Zero else One
+    -- todo: remove these
+    putStrLn ("input:  " ++ show input )
+    putStrLn ("output: " ++ show output)
+    pure ()
 
+compressHuffman :: String -> String
+compressHuffman = id
+
+decompressHuffman :: String -> String
+decompressHuffman = id
+
+{-
 data ParsableHuffmanData = HuffmanEncoding {
         primitiveTable :: [(Char, [Bool])],
         bitCount :: Int,
         bitSequence :: [Word8]
     }
-
-compressMap :: Map Char [Bit] -> [(Char, [Bool])]
-compressMap map = [(char, [bitToBool b | b <- bits]) | (char, bits) <- (Map.toList map)]
-
---decompressMap :: [(Char, [Bool])] -> Map Char [Bit]
---decompressMap list = Map.fromList [|]
-
-{-
-huffmanPack :: String -> ParsableHuffmanData
-huffmanPack message = 
-    let tree = buildHTree message
-        table = toCodingTable tree
-        encodeMessage = encode table message
-    in ParsableHuffmanData
-
-huffmanUnpack :: ParsableHuffmanData -> String
-huffmanPack _data = undefined
-
-
-huffmanPack :: (CodingTable -> String) -> ([Bit] -> String) -> String -> String
-huffmanPack serializeTable serializeBits message =
-    let tree = buildHTree message
-        table = toCodingTable tree
-        encodedMessage = serializeBits (encode table message)
-        encodedTable = serializeTable table
-    in encodedTable ++ encodedMessage
-
-huffmanUnpack :: (String -> CodingTable) -> (String -> [Bit]) -> String -> String
-huffmanUnpack deserializeTable deserializeBits encoded =
-    let table =
 -}
+
+----------------------- code provided by the professor ----------------------------------------
+
+-- byteStringToBits convert a bytestring to a list of bits. The Int parameter is
+-- the expected length of the list. This is required to remove padding bits added
+-- by bitsToByteString.
+byteStringToBits :: Int -> BS.ByteString -> [Bit]
+byteStringToBits n bs =
+    let allBits = concatMap fromWord8 (BS.unpack bs)
+    in take n allBits -- remove padding bits
+
+-- bitsToByteString converts a list of bits to a ByteString. It pads the last Word8 
+-- in the resulting bytestring with zeros.
+bitsToByteString :: [Bit] -> BS.ByteString
+bitsToByteString topBits = BS.pack (toWord8List topBits)
+    where
+      toWord8List [] = []
+      toWord8List bits =
+          let (prefix, suffix) = splitAt 8 bits
+          in toWord8 prefix : toWord8List suffix
+
+-- to list of bits must have <= 8 elements
+toWord8 :: [Bit] -> Word8
+toWord8 bits = go 7 bits
+    where
+      go :: Int -> [Bit] -> Word8
+      go _ [] = 0
+      go i (Zero:rest) = go (i - 1) rest
+      go i (One:rest) = 2^i + go (i - 1) rest
+
+fromWord8 :: Word8 -> [Bit]
+fromWord8 word = go 7 word
+    where
+      go :: Int -> Word8 -> [Bit]
+      go i w
+          | i < 0 = []
+          | otherwise =
+              let x = 2^i
+                  this = w `div` x
+                  rest = w `mod` x
+                  bit = if this == 0 then Zero else One
+              in bit : go (i - 1) rest

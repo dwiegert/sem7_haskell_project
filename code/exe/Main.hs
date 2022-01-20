@@ -1,8 +1,32 @@
 module Main where
 
 import System.Environment
---import System.Directory
---import Huffman
+import System.Directory
+import Data.List
+import Huffman
+
+main :: IO()
+main = do
+    args <- getArgs
+    print args
+    validateArgs args
+    pure ()
+
+validateArgs :: [String] -> IO ()
+validateArgs = chooseBehavior [
+        (argumentCount (<2),   reportError "too few arguments.\n(needs source and destination path)."),
+        (argumentCount (>2),   reportError "too many arguments.\n(needs source and destination path)."),
+        (fileNotThere,         reportError "input file does not exist."),
+        (equalPaths,           reportError "input and output file is the same, it would overwrite the source."),
+        (hasExtension ".comp", doFileAction decodeFile),
+        (always True,          doFileAction encodeFile)
+    ]
+
+doFileAction :: (FilePath -> FilePath -> IO ()) -> [FilePath] -> IO ()
+doFileAction func [source, destination] = func source destination
+doFileAction _ _ = undefined
+
+-- Behavior table executor
 chooseBehavior :: Monad m => [([a] -> m Bool, [a] -> m ())] -> [a] -> m ()
 chooseBehavior [] _ = undefined
 chooseBehavior [(_, call)] args = call args
@@ -12,35 +36,23 @@ chooseBehavior ((check, call):rest) args = do
     then call args
     else chooseBehavior rest args
 
-constCheck :: Monad m => Bool -> [a] -> m Bool
-constCheck val _ = pure val
+reportError :: String -> [String] -> IO ()
+reportError message _ = putStrLn message
 
-validateArgs :: [String] -> IO ()
-validateArgs = chooseBehavior [
-        ((\list -> pure (length list < 2)), (\_ -> putStrLn "too few arguments\n(needs source and destination path)")),
-        ((\list -> pure (length list > 2)), (\_ -> putStrLn "too many arguments\n(needs source and destination path)")),
---        ((\list -> doesFileExist (head list)), (\_ -> putStrLn "input file does not exist"))
-        (constCheck True, program)
-    ]
+always :: Monad m => t -> [a] -> m t
+always val _ = pure val
 
-main :: IO()
-main = do
-    args <- getArgs
-    print args
-    validateArgs args
-    pure ()
+argumentCount :: (Int -> Bool) -> [String] -> IO Bool
+argumentCount check list = pure $ check $ length list
 
-program :: [String] -> IO ()
-program args = do 
-    putStrLn ("program: " ++ show args)
-    pure ()
+fileNotThere :: [String] -> IO Bool
+fileNotThere list = do
+    result <- doesFileExist $ head list
+    pure $ not result
 
-compressFile :: [String] -> IO ()
-compressFile args = do 
-    putStrLn ("compress: " ++ show args)
-    pure ()
+hasExtension :: FilePath -> [String] -> IO Bool
+hasExtension ext list = pure (isSuffixOf ext $ head list)
 
-decompressFile :: [String] -> IO ()
-decompressFile args = do 
-    putStrLn ("decompress: " ++ show args)
-    pure ()
+equalPaths :: [String] -> IO Bool
+equalPaths [source, destination] = pure (source == destination)
+equalPaths _ = undefined
