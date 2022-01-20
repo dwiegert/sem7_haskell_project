@@ -3,7 +3,6 @@ module Main where
 import System.Environment
 --import System.Directory
 --import Huffman
-
 chooseBehavior :: Monad m => [([a] -> m Bool, [a] -> m ())] -> [a] -> m ()
 chooseBehavior [] _ = undefined
 chooseBehavior [(_, call)] args = call args
@@ -20,7 +19,7 @@ validateArgs :: [String] -> IO ()
 validateArgs = chooseBehavior [
         ((\list -> pure (length list < 2)), (\_ -> putStrLn "too few arguments\n(needs source and destination path)")),
         ((\list -> pure (length list > 2)), (\_ -> putStrLn "too many arguments\n(needs source and destination path)")),
---        ((\list -> doesFileExist $ head list), (\_ -> putStrLn "input file does not exist"))
+--        ((\list -> doesFileExist (head list)), (\_ -> putStrLn "input file does not exist"))
         (constCheck True, program)
     ]
 

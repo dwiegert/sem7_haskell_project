@@ -4,7 +4,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.List as List
 -- import qualified Data.ByteString as BS
 -- import qualified Data.ByteString.Lazy as BSL
--- import Data.Word
+import Data.Word
 -- import qualified Data.Binary as B
 
 type Map = Map.Map
@@ -123,22 +123,45 @@ decodeFile srcFile dstFile = do
     print srcFile
     print dstFile
 
-serializeCodingTableDefault :: CodingTable -> String
-serializeCodingTableDefault = undefined
--- serializeCodingTableDefault table = B.put $ Map.toList table
+bitToBool :: Bit -> Bool
+bitToBool bit = if bit == Zero then False else True
 
-deserializeCodingTableDefault :: String -> CodingTable
-deserializeCodingTableDefault = undefined
--- deserializeCodingTableDefault string = Map.fromList $ B.get string
+boolToBit :: Bool -> Bit
+boolToBit bool = if bool == False then Zero else One
 
-serializeCodingTableCompact :: CodingTable -> String
-serializeCodingTableCompact = undefined
+data ParsableHuffmanData = HuffmanEncoding {
+        primitiveTable :: [(Char, [Bool])],
+        bitCount :: Int,
+        bitSequence :: [Word8]
+    }
 
-deserializeCodingTableCompact :: String -> CodingTable
-deserializeCodingTableCompact = undefined
+compressMap :: Map Char [Bit] -> [(Char, [Bool])]
+compressMap map = [(char, [bitToBool b | b <- bits]) | (char, bits) <- (Map.toList map)]
 
-serializeHuffmanTree :: HTree -> String
-serializeHuffmanTree = undefined
+--decompressMap :: [(Char, [Bool])] -> Map Char [Bit]
+--decompressMap list = Map.fromList [|]
 
-deserializeHuffmanTree :: String -> HTree 
-deserializeHuffmanTree = undefined
+{-
+huffmanPack :: String -> ParsableHuffmanData
+huffmanPack message = 
+    let tree = buildHTree message
+        table = toCodingTable tree
+        encodeMessage = encode table message
+    in ParsableHuffmanData
+
+huffmanUnpack :: ParsableHuffmanData -> String
+huffmanPack _data = undefined
+
+
+huffmanPack :: (CodingTable -> String) -> ([Bit] -> String) -> String -> String
+huffmanPack serializeTable serializeBits message =
+    let tree = buildHTree message
+        table = toCodingTable tree
+        encodedMessage = serializeBits (encode table message)
+        encodedTable = serializeTable table
+    in encodedTable ++ encodedMessage
+
+huffmanUnpack :: (String -> CodingTable) -> (String -> [Bit]) -> String -> String
+huffmanUnpack deserializeTable deserializeBits encoded =
+    let table =
+-}
