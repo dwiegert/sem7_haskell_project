@@ -31,7 +31,6 @@ doFileAction name func [source, destination] = do
     endTime <- getCurrentTime
     let timeDifference = diffUTCTime endTime beginTime
     putStrLn ("done in " ++ show timeDifference)
-
 doFileAction _ _ _ = undefined
 
 -- Behavior table executor
