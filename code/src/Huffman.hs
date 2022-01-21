@@ -112,14 +112,13 @@ eraseFrequency (Node zero one _) = node (eraseFrequency zero) (eraseFrequency on
 
 -- #9 
 encodeFile :: FilePath -> FilePath -> IO ()
-encodeFile = readTransformWrite "compress" compressHuffman
+encodeFile = readTransformWrite compressHuffman
 
 decodeFile :: FilePath -> FilePath -> IO ()
-decodeFile = readTransformWrite "decompress" decompressHuffman
+decodeFile = readTransformWrite decompressHuffman
 
-readTransformWrite :: String -> (String -> String) -> FilePath -> FilePath -> IO ()
-readTransformWrite name transform source destination = do 
-    putStrLn (name ++ ": " ++ show source ++ " -> " ++ show destination)
+readTransformWrite :: (String -> String) -> FilePath -> FilePath -> IO ()
+readTransformWrite transform source destination = do 
     input <- readFile source
     let output = transform input
     writeFile destination output

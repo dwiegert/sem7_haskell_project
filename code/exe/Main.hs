@@ -3,6 +3,7 @@ module Main where
 import System.Environment
 import System.Directory
 import Data.List
+import Data.Time
 import Huffman
 
 main :: IO()
@@ -18,13 +19,20 @@ validateArgs = chooseBehavior [
         (argumentCount (>2),   reportError "too many arguments.\n(needs source and destination path)."),
         (fileNotThere,         reportError "input file does not exist."),
         (equalPaths,           reportError "input and output file is the same, it would overwrite the source."),
-        (hasExtension ".comp", doFileAction decodeFile),
-        (always True,          doFileAction encodeFile)
+        (hasExtension ".comp", doFileAction "decompress" decodeFile),
+        (always True,          doFileAction "compress"   encodeFile)
     ]
 
-doFileAction :: (FilePath -> FilePath -> IO ()) -> [FilePath] -> IO ()
-doFileAction func [source, destination] = func source destination
-doFileAction _ _ = undefined
+doFileAction :: String -> (FilePath -> FilePath -> IO ()) -> [FilePath] -> IO ()
+doFileAction name func [source, destination] = do
+    putStrLn (name ++ ": " ++ show source ++ " -> " ++ show destination)
+    beginTime <- getCurrentTime
+    func source destination
+    endTime <- getCurrentTime
+    let timeDifference = diffUTCTime endTime beginTime
+    putStrLn ("done in " ++ show timeDifference)
+
+doFileAction _ _ _ = undefined
 
 -- Behavior table executor
 chooseBehavior :: Monad m => [([a] -> m Bool, [a] -> m ())] -> [a] -> m ()

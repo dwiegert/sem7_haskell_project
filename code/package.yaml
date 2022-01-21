@@ -20,6 +20,7 @@ executables:
       - base
       - huffman
       - directory
+      - time
 
 tests:
   unit-tests:
