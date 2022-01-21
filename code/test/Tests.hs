@@ -105,9 +105,7 @@ test_toDecodeTree_toCodingTable = do
   pure ()
 
 test_toFromWord8 :: IO ()
-test_toFromWord8 = do
-  reportNotImplemented "toFromWord8"
-  pure ()
+test_toFromWord8 = undefined
 
 do_encodeDecode :: String -> IO ()
 do_encodeDecode initial = do
@@ -122,11 +120,23 @@ test_encodeDecode = do
   do_encodeDecode "do_encodeDecode"
   do_encodeDecode "this is another string"
   do_encodeDecode "thinking about it, this is actually the ideal case for property testing. anyways, back to work!"
-  pure ()
 
 test_encodeDecodeFile :: IO ()
-test_encodeDecodeFile = do 
-  reportNotImplemented "encodeDecodeFile"
+test_encodeDecodeFile = do
+  let file1 = "data/hitchhiker.txt"
+  let file2 = "data/hitchhiker.comp"
+  let file3 = "data/hitchhiker"
+
+  encodeFile file1 file2
+  decodeFile file2 file3
+
+  text1 <- readFile file1
+  text2 <- readFile file2
+  text3 <- readFile file3
+
+  assertEqual "equality" text1 text3
+  assertEqual "transformed" False (text1 == text2)
+
   pure ()
 
 allTests :: Test
