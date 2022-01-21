@@ -9,7 +9,6 @@ import Huffman
 main :: IO()
 main = do
     args <- getArgs
-    print args
     validateArgs args
     pure ()
 
@@ -54,11 +53,11 @@ argumentCount check list = pure $ check $ length list
 
 fileNotThere :: [String] -> IO Bool
 fileNotThere list = do
-    result <- doesFileExist $ head list
+    result <- doesFileExist $ Data.List.head list
     pure $ not result
 
 hasExtension :: FilePath -> [String] -> IO Bool
-hasExtension ext list = pure (isSuffixOf ext $ head list)
+hasExtension ext list = pure (isSuffixOf ext $ Data.List.head list)
 
 equalPaths :: [String] -> IO Bool
 equalPaths [source, destination] = pure (source == destination)

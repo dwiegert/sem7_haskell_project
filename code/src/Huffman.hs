@@ -126,21 +126,46 @@ readTransformWrite transform source destination = do
     -- todo: remove these
     putStrLn ("input:  " ++ show input )
     putStrLn ("output: " ++ show output)
-    pure ()
 
 compressHuffman :: String -> String
-compressHuffman = id
+compressHuffman text = 
+    let _parseable = toParsableHuffmanData text
+    -- todo: how to serialize
+    in id text
 
 decompressHuffman :: String -> String
-decompressHuffman = id
+decompressHuffman binary = 
+    let _ = 0
+    -- todo: how to deserialize
+    in id binary
 
-{-
-data ParsableHuffmanData = HuffmanEncoding {
-        primitiveTable :: [(Char, [Bool])],
-        bitCount :: Int,
-        bitSequence :: [Word8]
-    }
--}
+
+type BinaryData = (
+        Int,          -- length
+        BS.ByteString -- data
+    )
+
+type ParsableHuffmanData = (
+        [(Char, BinaryData)], -- head / table
+        BinaryData            -- body / data
+    )
+
+toParsableHuffmanData :: String -> ParsableHuffmanData
+toParsableHuffmanData text = 
+    let table = toCodingTable $ buildHTree text -- [(Char, [Bit])]
+        bits  = encode table text               -- [Bit]
+        head  = [(c, (length b, bitsToByteString b)) | (c, b) <- Map.toList table]
+        body  = (length bits, bitsToByteString bits)
+    in (head, body)
+
+fromParsableHuffmanData :: ParsableHuffmanData -> String
+fromParsableHuffmanData (head, (bodyLength, body)) =
+    let bits = byteStringToBits bodyLength body
+        table = Map.fromList [(c, byteStringToBits l b) | (c, (l, b)) <- head]
+        tree = toDecodeTree table
+    in decode tree bits
+
+
 
 ----------------------- code provided by the professor ----------------------------------------
 
