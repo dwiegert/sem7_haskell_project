@@ -149,7 +149,7 @@ test_encodeDecodeFile = do
   let length1 = length text1
   let length2 = length text2
   let length3 = length text3
-  putStrLn ("file sizes: " ++ (show length1) ++ " -> " ++ (show length2) ++ " -> " ++ show length3)
+  putStrLn ("\nfile sizes: " ++ (show length1) ++ " -> " ++ (show length2) ++ " -> " ++ show length3)
 
   assertEqual "round-trip equality" text1 text3
   assertEqual "transformation occured" False (text1 == text2)
