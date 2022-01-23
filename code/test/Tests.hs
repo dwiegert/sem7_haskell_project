@@ -119,19 +119,8 @@ test_toFromWord8 = do
   sequence_ [do_toFromWord8 value | value <- allValues]
   --sequence_ [print value | value <- allValues]
 
-do_encodeDecode :: String -> IO ()
-do_encodeDecode initial = do
-  let transformed = compressHuffman initial
-  let result = decompressHuffman transformed
-  assertEqual "round trip" initial result
-  assertEqual "transformed" False (initial == transformed)
-
-test_encodeDecode :: IO ()
-test_encodeDecode = do
-  do_encodeDecode "wubwubwub"
-  do_encodeDecode "do_encodeDecode"
-  do_encodeDecode "this is another string"
-  do_encodeDecode "thinking about it, this is actually the ideal case for property testing. anyways, back to work!"
+do_fromToParsableHuffmanData :: String -> IO ()
+do_fromToParsableHuffmanData _data = undefined
 
 test_encodeDecodeFile :: IO ()
 test_encodeDecodeFile = do
@@ -168,7 +157,6 @@ allTests =
     , mkTest "toDecodeTree" test_toDecodeTree
     , mkTest "toDecodeTree_toCodingTable" test_toDecodeTree_toCodingTable
     , mkTest "toFromWord8" test_toFromWord8
-    , mkTest "encodeDecode" test_encodeDecode
     , mkTest "encodeDecodeFile" test_encodeDecodeFile
     ]
   where

@@ -1,11 +1,14 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Huffman where
 
 import qualified Data.Map.Strict as Map
 import qualified Data.List as List
 import qualified Data.ByteString as BS
---import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy as BSL
 import Data.Word
---import qualified Data.Binary as B
+import qualified Data.Binary as B
+import GHC.Generics (Generic)
 
 type Map = Map.Map
 type CodingTable = Map Char [Bit]
@@ -13,7 +16,9 @@ type CodingTable = Map Char [Bit]
 type HuffmanTuple = (Char, [Bit])
 
 data Bit = Zero | One 
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic)
+
+instance B.Binary Bit
 
 -- #2
 data HTree = 
@@ -112,41 +117,28 @@ eraseFrequency (Node zero one _) = node (eraseFrequency zero) (eraseFrequency on
 
 -- #9 
 encodeFile :: FilePath -> FilePath -> IO ()
-encodeFile = readTransformWrite compressHuffman
+encodeFile source destination = do
+    input <- readFile source
+    let parsable = toParsableHuffmanData input
+    let encoded = B.encode parsable
+    BSL.writeFile destination encoded
 
 decodeFile :: FilePath -> FilePath -> IO ()
-decodeFile = readTransformWrite decompressHuffman
-
-readTransformWrite :: (String -> String) -> FilePath -> FilePath -> IO ()
-readTransformWrite transform source destination = do 
-    input <- readFile source
-    let output = transform input
-    writeFile destination output
-
-    -- todo: remove these
---    putStrLn ("input:  " ++ show input )
---    putStrLn ("output: " ++ show output)
-
-compressHuffman :: String -> String
-compressHuffman text = 
-    let _parseable = toParsableHuffmanData text
-    -- todo: how to serialize
-    in id text
-
-decompressHuffman :: String -> String
-decompressHuffman binary = 
-    let _ = 0
-    -- todo: how to deserialize
-    in id binary
+decodeFile source destination = do
+    input <- BSL.readFile source
+    let parsable = B.decode input
+    let decoded = fromParsableHuffmanData parsable
+    writeFile destination decoded
 
 
 type BinaryData = (
-        Int,          -- length
+        Int,          -- length (bits)
         BS.ByteString -- data
     )
 
 type ParsableHuffmanData = (
         [(Char, BinaryData)], -- head / table
+--        CodingTable           -- head/table
         BinaryData            -- body / data
     )
 
@@ -155,14 +147,16 @@ toParsableHuffmanData text =
     let table = toCodingTable $ buildHTree text -- [(Char, [Bit])]
         bits  = encode table text               -- [Bit]
         head  = [(c, (length b, bitsToByteString b)) | (c, b) <- Map.toList table]
+--        head  = table
         body  = (length bits, bitsToByteString bits)
     in (head, body)
 
 fromParsableHuffmanData :: ParsableHuffmanData -> String
 fromParsableHuffmanData (head, (bodyLength, body)) =
-    let bits = byteStringToBits bodyLength body
+    let bits  = byteStringToBits bodyLength body
         table = Map.fromList [(c, byteStringToBits l b) | (c, (l, b)) <- head]
-        tree = toDecodeTree table
+--        table = head
+        tree  = toDecodeTree table
     in decode tree bits
 
 
