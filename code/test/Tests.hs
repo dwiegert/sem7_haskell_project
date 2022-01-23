@@ -4,6 +4,7 @@ import Huffman
 import Test.HUnit
 import System.Exit
 import qualified Data.Map.Strict as Map
+import Data.Word
 
 -- concrete testing values
 
@@ -104,8 +105,19 @@ test_toDecodeTree_toCodingTable = do
   test "test_toDecodeTree_toCodingTable"
   pure ()
 
+do_toFromWord8 :: Word8 -> IO ()
+do_toFromWord8 value = do
+  let name = "byte = " ++ show value
+  let result = toWord8 $ fromWord8 value
+  assertEqual name value result
+  pure ()
+
 test_toFromWord8 :: IO ()
-test_toFromWord8 = undefined
+test_toFromWord8 = do
+  -- ladies and gentlemen, we have FULL value coverage here.
+  let allValues = [0..255] :: [Word8]
+  sequence_ [do_toFromWord8 value | value <- allValues]
+  --sequence_ [print value | value <- allValues]
 
 do_encodeDecode :: String -> IO ()
 do_encodeDecode initial = do

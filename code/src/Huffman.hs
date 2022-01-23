@@ -124,8 +124,8 @@ readTransformWrite transform source destination = do
     writeFile destination output
 
     -- todo: remove these
-    putStrLn ("input:  " ++ show input )
-    putStrLn ("output: " ++ show output)
+--    putStrLn ("input:  " ++ show input )
+--    putStrLn ("output: " ++ show output)
 
 compressHuffman :: String -> String
 compressHuffman text = 
