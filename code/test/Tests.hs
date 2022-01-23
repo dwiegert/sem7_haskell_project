@@ -146,8 +146,12 @@ test_encodeDecodeFile = do
   text2 <- readFile file2
   text3 <- readFile file3
 
-  assertEqual "equality" text1 text3
-  assertEqual "transformed" False (text1 == text2)
+  assertEqual "round-trip equality" text1 text3
+  assertEqual "transformation occured" False (text1 == text2)
+
+  let length1 = length text1
+  let length2 = length text2
+  assertEqual ("file shrunk: " ++ (show length1) ++ " > " ++ (show length2)) True (length1 > length2)
 
   pure ()
 
