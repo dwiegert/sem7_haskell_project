@@ -5,6 +5,7 @@ import Test.HUnit
 import System.Exit
 import qualified Data.Map.Strict as Map
 import Data.Word
+import System.IO -- file size
 
 -- concrete testing values
 
@@ -122,29 +123,27 @@ test_toFromWord8 = do
 do_fromToParsableHuffmanData :: String -> IO ()
 do_fromToParsableHuffmanData _data = undefined
 
-test_encodeDecodeFile :: IO ()
-test_encodeDecodeFile = do
-  let file1 = "data/hitchhiker.txt"
-  let file2 = "data/hitchhiker.comp"
-  let file3 = "data/hitchhiker"
-
+do_encodeDecodeFile :: FilePath -> FilePath -> FilePath -> IO ()
+do_encodeDecodeFile file1 file2 file3 = do
   encodeFile file1 file2
   decodeFile file2 file3
 
+  -- I won't read file 2, because attempting to read binary data gave me
+  -- hGetContents: invalid argument with this binary file
   text1 <- readFile file1
-  text2 <- readFile file2
   text3 <- readFile file3
 
   let length1 = length text1
-  let length2 = length text2
   let length3 = length text3
+  length2 <- withFile file2 ReadMode hFileSize
   putStrLn ("\nfile sizes: " ++ (show length1) ++ " -> " ++ (show length2) ++ " -> " ++ show length3)
 
   assertEqual "round-trip equality" text1 text3
-  assertEqual "transformation occured" False (text1 == text2)
-  assertEqual "file shrunk" True (length1 > length2)
+  assertEqual "file shrunk" True (length1 > (fromIntegral length2))
 
-  pure ()
+test_encodeDecodeFile :: IO ()
+test_encodeDecodeFile = do
+  do_encodeDecodeFile "data/hitchhiker.txt" "data/hitchhiker.comp" "data/hitchhiker_processed.txt"
 
 allTests :: Test
 allTests =

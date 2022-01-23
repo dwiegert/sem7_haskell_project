@@ -137,25 +137,28 @@ type BinaryData = (
     )
 
 type ParsableHuffmanData = (
-        [(Char, BinaryData)], -- head / table
---        CodingTable           -- head/table
+--        [(Char, BinaryData)], -- head / table
+        CodingTable,          -- head/table
         BinaryData            -- body / data
     )
+
+-- ^ replacing the list with an actual map results in a smaller file size.
+-- so all the instructions are still there just in case I need to swap them out again.
 
 toParsableHuffmanData :: String -> ParsableHuffmanData
 toParsableHuffmanData text = 
     let table = toCodingTable $ buildHTree text -- [(Char, [Bit])]
         bits  = encode table text               -- [Bit]
-        head  = [(c, (length b, bitsToByteString b)) | (c, b) <- Map.toList table]
---        head  = table
+--        head  = [(c, (length b, bitsToByteString b)) | (c, b) <- Map.toList table]
+        head  = table
         body  = (length bits, bitsToByteString bits)
     in (head, body)
 
 fromParsableHuffmanData :: ParsableHuffmanData -> String
 fromParsableHuffmanData (head, (bodyLength, body)) =
     let bits  = byteStringToBits bodyLength body
-        table = Map.fromList [(c, byteStringToBits l b) | (c, (l, b)) <- head]
---        table = head
+--        table = Map.fromList [(c, byteStringToBits l b) | (c, (l, b)) <- head]
+        table = head
         tree  = toDecodeTree table
     in decode tree bits
 
